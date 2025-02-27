@@ -1,97 +1,37 @@
 {
-    "manifest_version": 3,
-    "name": "Cryto Auto Filler",
-    "version": "1.0",
-    "description": "Автоматически заполняет текстовые поля на биржах (Firefox и Chrome).",
-    "permissions": [
+  "manifest_version": 3,
+  "name": "Cryto Auto Filler",
+  "version": "1.1",
+  "description": "Автоматически заполняет текстовые поля на биржах (Firefox и Chrome).",
+  "permissions": [
       "storage",
-      "activeTab",
-      "*://*.binance.com/*",
-      "*://*.binance.us/*",
-      "*://*.binance.je/*",
-      "*://*.binance.bh/*",
-      "*://*.bingx.com/*",
-      "*://*.bitget.com/*",
-      "*://*.bitmart.com/*",
-      "*://*.bitmex.com/*",
-      "*://*.bybit.com/*",
-      "*://*.bybit.global/*",
-      "*://*.coinex.com/*",
-      "*://*.coinex.net/*",
-      "*://*.gate.io/*",
-      "*://*.gate.ac/*",
-      "*://*.gateio.ws/*",
-      "*://*.gate.me/*",
-      "*://*.htx.com/*",
-      "*://*.htx.me/*",
-      "*://*.huobi.com/*",
-      "*://*.huobi.pro/*",
-      "*://*.kucoin.com/*",
-      "*://*.kucoin.io/*",
-      "*://*.lbank.com/*",
-      "*://*.lbank.info/*",
-      "*://*.mexc.com/*",
-      "*://*.mexc.mx/*",
-      "*://futures.mexc.com/*",
-      "*://*.okx.com/*",
-      "*://*.okx.cab/*",
-      "*://*.okx.lat/*",
-      "*://*.poloniex.com/*",
-      "*://*.xt.com/*",
-      "*://*.xt.pub/*"
-    ],
-    "action": {
+      "activeTab"
+  ],
+  "host_permissions": [
+      "<all_urls>"
+  ],
+  "action": {
       "default_popup": "popup.html",
-      "default_icon": "icon.png"
-    },
-    "content_scripts": [
-      {
-        "matches": [
-            "*://*.binance.com/*",
-            "*://*.binance.us/*",
-            "*://*.binance.je/*",
-            "*://*.binance.bh/*",
-            "*://*.bingx.com/*",
-            "*://*.bitget.com/*",
-            "*://*.bitmart.com/*",
-            "*://*.bitmex.com/*",
-            "*://*.bybit.com/*",
-            "*://*.bybit.global/*",
-            "*://*.coinex.com/*",
-            "*://*.coinex.net/*",
-            "*://*.gate.io/*",
-            "*://*.gate.ac/*",
-            "*://*.gateio.ws/*",
-            "*://*.gate.me/*",
-            "*://*.htx.com/*",
-            "*://*.htx.me/*",
-            "*://*.huobi.com/*",
-            "*://*.huobi.pro/*",
-            "*://*.kucoin.com/*",
-            "*://*.kucoin.io/*",
-            "*://*.lbank.com/*",
-            "*://*.lbank.info/*",
-            "*://*.mexc.com/*",
-            "*://*.mexc.mx/*",
-            "*://futures.mexc.com/*",
-            "*://*.okx.com/*",
-            "*://*.okx.cab/*",
-            "*://*.okx.lat/*",
-            "*://*.poloniex.com/*",
-            "*://*.xt.com/*",
-            "*://*.xt.pub/*"
-        ],
-        "js": ["content.js"],
-        "run_at": "document_idle"
+      "default_icon": {
+          "16": "icon.png",
+          "48": "icon.png",
+          "128": "icon.png"
       }
-    ],
-    "options_ui": {
+  },
+  "content_scripts": [
+      {
+          "matches": ["<all_urls>"],
+          "js": ["content.js"],
+          "run_at": "document_idle"
+      }
+  ],
+  "options_ui": {
       "page": "options.html",
       "open_in_tab": true
-    },
-    "browser_specific_settings": { 
+  },
+  "browser_specific_settings": { 
       "gecko": {
-        "id": "addon@auto-filler-for-funding.id" 
+          "id": "addon@auto-filler-for-funding.id" 
       }
-    }
   }
+}
