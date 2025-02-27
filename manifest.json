@@ -1,33 +1,37 @@
 {
-    "manifest_version": 3,
-    "name": "Cryto Auto Filler",
-    "version": "1.0",
-    "description": "Автоматически заполняет текстовые поля на биржах (Firefox и Chrome).",
-    "permissions": [
+  "manifest_version": 3,
+  "name": "Cryto Auto Filler",
+  "version": "1.1",
+  "description": "Автоматически заполняет текстовые поля на биржах (Firefox и Chrome).",
+  "permissions": [
       "storage",
-      "activeTab",
+      "activeTab"
+  ],
+  "host_permissions": [
       "<all_urls>"
-    ],
-    "action": {
+  ],
+  "action": {
       "default_popup": "popup.html",
-      "default_icon": "icon.png"
-    },
-    "content_scripts": [
-      {
-        "matches": [
-            "<all_urls>"
-        ],
-        "js": ["content.js"],
-        "run_at": "document_idle"
+      "default_icon": {
+          "16": "icon.png",
+          "48": "icon.png",
+          "128": "icon.png"
       }
-    ],
-    "options_ui": {
+  },
+  "content_scripts": [
+      {
+          "matches": ["<all_urls>"],
+          "js": ["content.js"],
+          "run_at": "document_idle"
+      }
+  ],
+  "options_ui": {
       "page": "options.html",
       "open_in_tab": true
-    },
-    "browser_specific_settings": { 
+  },
+  "browser_specific_settings": { 
       "gecko": {
-        "id": "addon@auto-filler-for-funding.id" 
+          "id": "addon@auto-filler-for-funding.id" 
       }
-    }
   }
+}

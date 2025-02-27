@@ -1,3 +1,5 @@
+const storage = typeof browser !== "undefined" ? browser.storage : chrome.storage;
+
 function debounce(func, delay) {
     let timeoutId;
     return function(...args) {
@@ -13,7 +15,7 @@ function fillField(targetField) {
         return;
     }
 
-    browser.storage.sync.get(["savedValue"]).then((result) => { // Используем .then()
+    storage.sync.get(["savedValue"]).then((result) => {
         const savedValue = result.savedValue ?? "";
 
         if (targetField.value === "" || targetField.value === "0") {
@@ -32,7 +34,6 @@ const debouncedFillAllFields = debounce(() => {
     textFields.forEach(fillField);
 }, 200);
 
-
 let observer = null; // Переменная для хранения observer
 
 function startObserving() {
@@ -47,14 +48,13 @@ function startObserving() {
     }
 
     observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        // Обрабатываем случай, когда target === null
-        if (mutation.target === null ) {
-          return; //Пропускаем
-        }
-        debouncedFillAllFields();
-
-      });
+        mutations.forEach((mutation) => {
+            // Обрабатываем случай, когда target === null
+            if (mutation.target === null) {
+                return; //Пропускаем
+            }
+            debouncedFillAllFields();
+        });
     });
 
     observer.observe(document.body, {
@@ -64,7 +64,7 @@ function startObserving() {
         attributeFilter: ['value', 'type']
     });
 
-     // Дополнительные обработчики событий (на случай, если MutationObserver что-то пропустит)
+    // Дополнительные обработчики событий (на случай, если MutationObserver что-то пропустит)
     document.body.addEventListener("input", debouncedFillAllFields);
     document.body.addEventListener("change", debouncedFillAllFields);
     document.body.addEventListener("blur", debouncedFillAllFields, true); // capturing phase
