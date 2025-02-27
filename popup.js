@@ -1,8 +1,9 @@
 const valueInput = document.getElementById("valueInput");
 const saveButton = document.getElementById("saveButton");
 const messageElement = document.getElementById("message");
+const storage = typeof browser !== "undefined" ? browser.storage : chrome.storage;
 
-browser.storage.sync.get(["savedValue"]).then((result) => { // Используем .then()
+storage.sync.get(["savedValue"]).then((result) => { // Используем .then()
     const savedValue = result.savedValue ?? "";
     valueInput.value = savedValue;
 }).catch(error => {
@@ -11,7 +12,7 @@ browser.storage.sync.get(["savedValue"]).then((result) => { // Использу�
 
 saveButton.addEventListener("click", () => {
     const value = valueInput.value;
-    browser.storage.sync.set({ ["savedValue"]: value }).then(() => { // Используем .then()
+    storage.sync.set({ ["savedValue"]: value }).then(() => { // Используем .then()
         messageElement.textContent = "Сохранено!";
         setTimeout(() => { messageElement.textContent = ""; }, 2000);
         window.close();
