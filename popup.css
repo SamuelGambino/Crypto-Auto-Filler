@@ -1,0 +1,95 @@
+/* Общие стили */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Современный шрифт */
+  background-color: #01091A; /* Основной фон */
+  color: #fff;            /* Цвет текста */
+  margin: 0;               /* Убираем отступы по умолчанию */
+  padding: 0;
+    width: 250px; /*Ширину можно и тут указать*/
+
+}
+
+.container {
+  padding: 20px;
+  display: flex;
+  flex-direction: column; /* Элементы друг под другом */
+  align-items: stretch;    /* Растягиваем элементы на всю ширину */
+}
+
+/* Стили для label */
+.label {
+  margin-bottom: 5px;
+  font-size: 14px;
+  color: #eee; /* Немного светлее основного текста */
+}
+
+/* Стили для input */
+.input {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #CD5700; /* Бордюр */
+  border-radius: 4px;      /* Скругленные углы */
+  background-color: #0A1428; /* Темный фон для input */
+  color: #fff;            /* Цвет текста */
+  margin-bottom: 15px;      /* Отступ снизу */
+    outline: none; /* Убираем outline при фокусе */
+
+}
+.input:focus{
+    border-color: #FF781F; /* Меняем цвет бордера при фокусе*/
+}
+
+/* Стили для button */
+.button {
+  padding: 10px 15px;
+  font-size: 16px;
+  border: none;             /* Убираем стандартный бордюр */
+  border-radius: 4px;      /* Скругленные углы */
+  background-color: #CD5700; /* Цвет кнопки */
+  color: #fff;            /* Цвет текста */
+  cursor: pointer;          /* Курсор-указатель */
+  transition: background-color 0.2s ease; /* Плавное изменение цвета */
+    outline: none;
+}
+
+.button:hover {
+  background-color: #FF781F; /* Светлее при наведении */
+}
+.button:active{
+    background-color: #AB4700; /*Темнее, когда кнопка "вниз" нажата */
+}
+/* Стили для message */
+.message {
+  color: #32CD32; /*Зеленый, но можно и поменять */
+  margin-top: 10px;
+  font-size: 14px;
+  text-align: center; /* Выравниваем текст по центру */
+    font-weight: bold; /* Жирный шрифт */
+
+}
+
+.about {
+    margin-top: 10px;
+    font-size: 14px;
+    text-align: center;
+    color: #ffffff;
+}
+
+.about__me {
+    margin-top: 10px;
+    font-size: 14px;
+    text-align: center;
+    color: #ffffff;
+    text-decoration: underline;
+}
+
+.popup__title {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #ffffff;
+}
+
+.popup__title .popup__title--accent {
+    color: #CD5700;
+}
