@@ -1,7 +1,7 @@
 # Crypto Auto Filler
 
 <h1 align="center">
-  <img src="../icon.png" alt="Crypto Auto Filler Logo" width="120">
+  <img src="/Crypto-Auto-Filler/icon.png" alt="Crypto Auto Filler Logo" width="120">
   <br>
   Crypto Auto Filler
 </h1>
@@ -18,7 +18,7 @@
 **Crypto Auto Filler** — это браузерное расширение, разработанное для упрощения торговли на криптовалютных биржах. Оно автоматически заполняет поля ввода количества монет желаемым значением, экономя ваше время и предотвращая ошибки при вводе.  Больше не нужно вручную вводить одно и то же число раз за разом!
 
 <p align="center">
-  <img src="../screenshot.png" alt="Extension Screenshot" width="600">
+  <img src="/Crypto-Auto-Filler/screenshot.png" alt="Extension Screenshot" width="600">
 </p>
 
 
