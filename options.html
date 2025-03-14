@@ -1,14 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>Настройки Crypto Auto Filler</title>
+  <link rel="stylesheet" href="options.css">
 </head>
 <body>
-  <h1>Настройки</h1>
-  <label for="valueInput">Значение:</label>
-  <input type="text" id="valueInput"><br><br>
-  <button id="saveButton">Сохранить</button>
+  <h1>Настройки Crypto Auto Filler</h1>
+
+  <h2>Выберите биржи:</h2>
+  <div id="exchangesList">
+    <!-- Список бирж будет здесь -->
+  </div>
+
+  <button id="saveExchanges">Сохранить</button>
   <p id="message"></p>
+
   <script src="options.js"></script>
 </body>
 </html>

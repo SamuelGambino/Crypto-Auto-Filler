@@ -1,5 +1,3 @@
-const storage = typeof browser !== "undefined" ? browser.storage : chrome.storage;
-
 function debounce(func, delay) {
     let timeoutId;
     return function(...args) {
@@ -14,18 +12,29 @@ function fillField(targetField) {
     if (!targetField) {
         return;
     }
-
-    storage.sync.get(["savedValue"]).then((result) => {
-        const savedValue = result.savedValue ?? "";
-
-        if (targetField.value === "" || targetField.value === "0") {
-            targetField.value = savedValue;
-            const event = new Event('input', { bubbles: true });
-            targetField.dispatchEvent(event);
-            console.log("Auto Filler: Field filled:", targetField);
+    // Запрашиваем savedValue у background script'а
+    chrome.runtime.sendMessage({action: "getSavedValue"}, (response) => {
+        if (chrome.runtime.lastError) { //Проверяем, не было ли ошибки
+          console.error("Error getting saved value:", chrome.runtime.lastError);
+          return;
         }
-    }).catch(error => {
-        console.error("AutoFiller: Error getting saved value:", error); // Обработка ошибок
+
+        const savedValue = response.savedValue ?? "";
+        if (targetField.value === "" || targetField.value === "0") {
+            try { //Оборачиваем в try...catch
+                targetField.value = savedValue;
+                const event = new Event('input', { bubbles: true });
+                targetField.dispatchEvent(event);
+                console.log("Auto Filler: Field filled:", targetField);
+            } catch (error) {
+               if (error.message === "Extension context invalidated."){
+                 // Обрабатываем ошибку
+                 console.warn("AutoFiller: Extension context invalidated while filling field.");
+               } else {
+                    console.error("AutoFiller: Error filling field:", error);
+                }
+            }
+        }
     });
 }
 
@@ -34,28 +43,21 @@ const debouncedFillAllFields = debounce(() => {
     textFields.forEach(fillField);
 }, 200);
 
-let observer = null; // Переменная для хранения observer
+let observer = null;
 
 function startObserving() {
-    if (!document.body) { // Проверяем наличие document.body
+    if (!document.body) {
         console.warn("AutoFiller: document.body not ready yet.");
         return;
     }
+
     debouncedFillAllFields();
 
     if (observer) {
-        observer.disconnect(); // Если уже наблюдаем — отключаем
+        observer.disconnect();
     }
 
-    observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            // Обрабатываем случай, когда target === null
-            if (mutation.target === null) {
-                return; //Пропускаем
-            }
-            debouncedFillAllFields();
-        });
-    });
+    observer = new MutationObserver(debouncedFillAllFields);
 
     observer.observe(document.body, {
         childList: true,
@@ -64,19 +66,15 @@ function startObserving() {
         attributeFilter: ['value', 'type']
     });
 
-    // Дополнительные обработчики событий (на случай, если MutationObserver что-то пропустит)
     document.body.addEventListener("input", debouncedFillAllFields);
     document.body.addEventListener("change", debouncedFillAllFields);
-    document.body.addEventListener("blur", debouncedFillAllFields, true); // capturing phase
+    document.body.addEventListener("blur", debouncedFillAllFields, true);
 }
-
-// Запускаем наблюдение
 startObserving();
 
-// Отменяем наблюдение при выгрузке скрипта
 window.addEventListener("beforeunload", () => {
     if (observer) {
         observer.disconnect();
-        observer = null; // Очищаем observer
+        observer = null;
     }
 });
