@@ -41,7 +41,13 @@ function startObserving() {
         console.warn("AutoFiller: document.body not ready yet.");
         return;
     }
-    debouncedFillAllFields();
+
+    chrome.storage.local.get(['selectedTabId1', 'selectedTabId2'], function(result) {
+        const currentTabId = tab.id;
+        if (currentTabId == result.selectedTabId1 || currentTabId == result.selectedTabId2) {
+            debouncedFillAllFields();
+        }
+    });
 
     if (observer) {
         observer.disconnect(); // Если уже наблюдаем — отключаем
