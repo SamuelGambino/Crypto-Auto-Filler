@@ -33,15 +33,15 @@ saveButton.addEventListener("click", () => {
 });
 
 document.addEventListener("DOMContentLoaded", function () {
-    chrome.runtime.sendMessage({ action: "getExchangeTabs" }, response => {
-        if (response && response.tabs) {
-            updateExchangeSelects(response.tabs);
+    chrome.storage.local.get("exchangeTabs", (data) => {
+        if (chrome.runtime.lastError) {
+            console.error("Ошибка получения exchangeTabs:", chrome.runtime.lastError);
+            return;
         }
-    });
-
-    chrome.runtime.onMessage.addListener((message) => {
-        if (message.action === "updateTabs") {
-            updateExchangeSelects(message.tabs);
+        if (data.exchangeTabs && Array.isArray(data.exchangeTabs)) {
+            updateExchangeSelects(data.exchangeTabs);
+        } else {
+            console.log("Список exchangeTabs не найден");
         }
     });
 });
@@ -66,10 +66,10 @@ function updateExchangeSelects(tabs) {
     });
 }
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === "updateTabs") {
-        updateExchangeSelects(message.tabs);
-        sendResponse({ status: "ok" });
-    }
-});
+// chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+//     if (message.action === "updateTabs") {
+//         updateExchangeSelects(message.tabs);
+//         sendResponse({ status: "ok" });
+//     }
+// });
   

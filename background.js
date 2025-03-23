@@ -35,22 +35,23 @@ function updateExchangeTabs() {
             }
         });
 
-        chrome.runtime.sendMessage({ action: "updateTabs", tabs: exchangeTabs }, response => {
+        chrome.storage.local.set({ exchangeTabs: exchangeTabs }, () => {
             if (chrome.runtime.lastError) {
-                console.warn("Ошибка при отправке сообщения:", chrome.runtime.lastError);
+                console.error("Ошибка сохранения exchangeTabs:", chrome.runtime.lastError);
             } else {
-                console.log("Сообщение успешно отправлено!", response);
+                console.log("exchangeTabs успешно сохранены");
             }
         });
     });
 }
 
-chrome.tabs.onUpdated.addListener(updateExchangeTabs);
+// chrome.tabs.onUpdated.addListener(updateExchangeTabs);
 chrome.tabs.onRemoved.addListener(updateExchangeTabs);
 chrome.tabs.onCreated.addListener(updateExchangeTabs);
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === "getExchangeTabs") {
-        updateExchangeTabs();
-    }
-});
+chrome.runtime.onInstalled.addListener(updateExchangeTabs);
+// chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+//     if (message.action === "getExchangeTabs") {
+//         updateExchangeTabs();
+//     }
+// });
