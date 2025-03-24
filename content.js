@@ -2,7 +2,7 @@ const storage = typeof browser !== "undefined" ? browser.storage : chrome.storag
 
 function debounce(func, delay) {
     let timeoutId;
-    return function(...args) {
+    return function (...args) {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => {
             func.apply(this, args);
@@ -20,12 +20,12 @@ function fillField(targetField) {
 
         if (targetField.value === "" || targetField.value === "0") {
             targetField.value = savedValue;
-            const event = new Event('input', { bubbles: true });
+            const event = new Event("input", { bubbles: true });
             targetField.dispatchEvent(event);
             console.log("Auto Filler: Field filled:", targetField);
         }
     }).catch(error => {
-        console.error("AutoFiller: Error getting saved value:", error); // Обработка ошибок
+        console.error("AutoFiller: Error getting saved value:", error);
     });
 }
 
@@ -34,49 +34,53 @@ const debouncedFillAllFields = debounce(() => {
     textFields.forEach(fillField);
 }, 200);
 
-let observer = null; // Переменная для хранения observer
+let observer = null;
 
-function startObserving() {
-    if (!document.body) { // Проверяем наличие document.body
-        console.warn("AutoFiller: document.body not ready yet.");
-        return;
-    }
-    debouncedFillAllFields();
-
-    if (observer) {
-        observer.disconnect(); // Если уже наблюдаем — отключаем
-    }
-
-    observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            // Обрабатываем случай, когда target === null
-            if (mutation.target === null) {
-                return; //Пропускаем
-            }
+// Функция запускает заполнение полей, но только если вкладка разрешена
+function checkAndStartFilling(currentTabId) {
+    chrome.storage.local.get(["selectedTabId1", "selectedTabId2"], function (result) {
+        if (result.selectedTabId1 == currentTabId || result.selectedTabId2 == currentTabId) {
+            console.log(`✅ AutoFiller работает на вкладке ${currentTabId}`);
             debouncedFillAllFields();
-        });
-    });
 
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        attributeFilter: ['value', 'type']
-    });
+            if (!observer) {
+                observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        if (mutation.target === null) return;
+                        debouncedFillAllFields();
+                    });
+                });
 
-    // Дополнительные обработчики событий (на случай, если MutationObserver что-то пропустит)
-    document.body.addEventListener("input", debouncedFillAllFields);
-    document.body.addEventListener("change", debouncedFillAllFields);
-    document.body.addEventListener("blur", debouncedFillAllFields, true); // capturing phase
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true,
+                    attributes: true,
+                    attributeFilter: ["value", "type"]
+                });
+
+                document.body.addEventListener("input", debouncedFillAllFields);
+                document.body.addEventListener("change", debouncedFillAllFields);
+                document.body.addEventListener("blur", debouncedFillAllFields, true);
+            }
+        } else {
+            console.log(`❌ AutoFiller НЕ работает на вкладке ${currentTabId} (не выбрана)`);
+        }
+    });
 }
 
-// Запускаем наблюдение
-startObserving();
+// Получаем ID текущей вкладки перед запуском логики
+chrome.runtime.sendMessage({ action: "getCurrentTabId" }, (response) => {
+    if (!response || !response.currentTabId) {
+        console.warn("❌ AutoFiller: Не удалось получить ID вкладки.");
+        return;
+    }
+    checkAndStartFilling(response.currentTabId);
+});
 
-// Отменяем наблюдение при выгрузке скрипта
+// Останавливаем наблюдение при выгрузке страницы
 window.addEventListener("beforeunload", () => {
     if (observer) {
         observer.disconnect();
-        observer = null; // Очищаем observer
+        observer = null;
     }
 });
