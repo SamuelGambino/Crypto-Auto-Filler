@@ -45,13 +45,20 @@ function updateExchangeTabs() {
     });
 }
 
-// chrome.tabs.onUpdated.addListener(updateExchangeTabs);
 chrome.tabs.onRemoved.addListener(updateExchangeTabs);
 chrome.tabs.onCreated.addListener(updateExchangeTabs);
+setTimeout(() => { chrome.tabs.onUpdated.addListener(updateExchangeTabs); }, 15000);
 
 chrome.runtime.onInstalled.addListener(updateExchangeTabs);
-// chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-//     if (message.action === "getExchangeTabs") {
-//         updateExchangeTabs();
+
+// chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+//     if (request.action === "getCurrentTabId") {
+//         sendResponse({ tabId: sender.tab.id });
 //     }
 // });
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === "getCurrentTabId" && sender.tab) {
+        sendResponse({ currentTabId: sender.tab.id });
+    }
+});

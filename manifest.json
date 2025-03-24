@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Cryto Auto Filler",
-  "version": "1.1",
+  "version": "1.2",
   "description": "Автоматически заполняет текстовые поля на биржах (Firefox и Chrome).",
   "background": {
     "service_worker": "background.js"
