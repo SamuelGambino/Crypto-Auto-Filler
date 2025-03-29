@@ -89,38 +89,61 @@ function runGetPrices() {
     });
 }
 
+function getAveragePrice(priceList) {
+    let sum = 0;
+    let count = 0;
+
+    priceList.forEach(element => {
+        let priceStr = element?.textContent.trim().replace(/,/g, '');
+        let price = parseFloat(priceStr);
+
+        if (!isNaN(price)) {
+            sum += price;
+            count++;
+        }
+    });
+
+    if (count > 0) {
+        return sum / count;
+    } else {
+        console.error(`Нет валидных цен для селектора: ${selector}`);
+        return null;
+    }
+}
+
 function getPrices() {
-    let bid = null;
-    let ask = null;
+    let bidList = null;
+    let askList = null;
     const url = window.location.hostname;
 
     try {
         if (url.includes("binance.com")) {
-            bid = document.querySelector('.orderbook-bid-price')?.textContent.trim();
-            ask = document.querySelector('.orderbook-ask-price')?.textContent.trim();
+            bidList = document.querySelectorAll('.orderbook-bid-price');
+            askList = document.querySelectorAll('.orderbook-ask-price');
         } else if (url.includes("bybit.com")) {
-            bid = document.querySelector('.bid-price')?.textContent.trim();
-            ask = document.querySelector('.ask-price')?.textContent.trim();
+            bidList = document.querySelectorAll('.bid-price');
+            askList = document.querySelectorAll('.ask-price');
         } else if (url.includes("okx.com")) {
-            bid = document.querySelector('.orderlist.bids .price')?.textContent.trim();
-            ask = document.querySelector('.orderlist.asks .price')?.textContent.trim();
+            bidList = document.querySelectorAll('.orderlist.bids .price');
+            askList = document.querySelectorAll('.orderlist.asks .price');
         } else if (url.includes("mexc.com")) {
-            bid = document.querySelector('.market_tableRow__Uuhwj.market_askRow__eRJes .market_price__V_09X.market_sell__SZ_It span')?.textContent.trim().replace(/,/g, '');
-            ask = document.querySelector('.market_tableRow__Uuhwj.market_bidRow__6wAE6 .market_price__V_09X.market_buy__F9O7S span')?.textContent.trim().replace(/,/g, '');
+            bidList = document.querySelectorAll('.market_tableRow__Uuhwj.market_askRow__eRJes .market_price__V_09X.market_sell__SZ_It span');
+            askList = document.querySelectorAll('.market_tableRow__Uuhwj.market_bidRow__6wAE6 .market_price__V_09X.market_buy__F9O7S span');
         } else if (url.includes("lbank.com")) {
-            bid = document.querySelector('.orderlist.bids .price')?.textContent.trim().replace(/,/g, '');
-            ask = document.querySelector('.orderlist.asks .price')?.textContent.trim().replace(/,/g, '');
+            bidList = document.querySelectorAll('.orderlist.bids .price');
+            askList = document.querySelectorAll('.orderlist.asks .price');
         } else if (url.includes("gate.io")) {
-            bid = document.querySelector('.depth-list-item .sc-278b8b11-4.hNNPbI')?.textContent.trim().replace(/,/g, '');
-            ask = document.querySelector('.depth-list-item .sc-278b8b11-4.logTeL')?.textContent.trim().replace(/,/g, '');
+            bidList = document.querySelectorAll('.depth-list-item .sc-278b8b11-4.hNNPbI');
+            askList = document.querySelectorAll('.depth-list-item .sc-278b8b11-4.logTeL');
         } else {
             console.log("Неизвестная биржа: " + url);
             return;
         }
 
+        bid = getAveragePrice(bidList);
+        ask = getAveragePrice(askList);
+
         if (bid && ask) {
-            bid = parseFloat(bid);
-            ask = parseFloat(ask);
             chrome.runtime.sendMessage({
                 action: "updatePrices",
                 exchange: url,
