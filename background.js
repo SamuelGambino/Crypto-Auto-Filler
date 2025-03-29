@@ -58,12 +58,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         chrome.storage.local.get("prices", (data) => {
             let prices = data.prices || {};
             prices[message.exchange] = { bid: message.bid, ask: message.ask };
-
             chrome.storage.local.set({ prices }, () => {
                 console.log(`Цены обновлены для ${message.exchange}:`, prices[message.exchange]);
+                console.log("Все данные в storage:", prices);
             });
         });
-    } else if (message.action === "getPrices") { // Удалена лишняя ветка
+    } else if (message.action === "getPrices") {
         chrome.storage.local.get("prices", (data) => {
             sendResponse({ prices: data.prices || {} });
         });
@@ -92,44 +92,45 @@ function runGetPrices() {
 function getPrices() {
     let bid = null;
     let ask = null;
-    
     const url = window.location.hostname;
 
-    if (url.includes("binance.com")) {
-        bid = document.querySelector('.orderbook-bid-price')?.textContent.trim();
-        ask = document.querySelector('.orderbook-ask-price')?.textContent.trim();
-    } else if (url.includes("bybit.com")) {
-        bid = document.querySelector('.bid-price')?.textContent.trim();
-        ask = document.querySelector('.ask-price')?.textContent.trim();
-    } else if (url.includes("okx.com")) {
-        bid = document.querySelector('.orderlist.bids .price')?.textContent.trim();
-        ask = document.querySelector('.orderlist.asks .price')?.textContent.trim();
-    } else if (url.includes("mexc.com")) {
-        bid = document.querySelector('.market_tableRow__Uuhwj.market_askRow__eRJes .market_price__V_09X.market_sell__SZ_It span')?.textContent.trim().replace(/,/g, '');
-        ask = document.querySelector('.market_tableRow__Uuhwj.market_bidRow__6wAE6 .market_price__V_09X.market_buy__F9O7S span')?.textContent.trim().replace(/,/g, '');
-    } else if (url.includes("lbank.com")) {
-        bid = document.querySelector('.orderlist.bids .price')?.textContent.trim().replace(/,/g, '');
-        ask = document.querySelector('.orderlist.asks .price')?.textContent.trim().replace(/,/g, '');
-    } else if (url.includes("gate.io")) {
-        bid = document.querySelector('.depth-list-item .sc-278b8b11-4.hNNPbI')?.textContent.trim().replace(/,/g, '');
-        ask = document.querySelector('.depth-list-item .sc-278b8b11-4.logTeL')?.textContent.trim().replace(/,/g, '');
-    } else {
-        console.log("Неизвестная биржа: " + url);
-        return;
-    }
+    try {
+        if (url.includes("binance.com")) {
+            bid = document.querySelector('.orderbook-bid-price')?.textContent.trim();
+            ask = document.querySelector('.orderbook-ask-price')?.textContent.trim();
+        } else if (url.includes("bybit.com")) {
+            bid = document.querySelector('.bid-price')?.textContent.trim();
+            ask = document.querySelector('.ask-price')?.textContent.trim();
+        } else if (url.includes("okx.com")) {
+            bid = document.querySelector('.orderlist.bids .price')?.textContent.trim();
+            ask = document.querySelector('.orderlist.asks .price')?.textContent.trim();
+        } else if (url.includes("mexc.com")) {
+            bid = document.querySelector('.market_tableRow__Uuhwj.market_askRow__eRJes .market_price__V_09X.market_sell__SZ_It span')?.textContent.trim().replace(/,/g, '');
+            ask = document.querySelector('.market_tableRow__Uuhwj.market_bidRow__6wAE6 .market_price__V_09X.market_buy__F9O7S span')?.textContent.trim().replace(/,/g, '');
+        } else if (url.includes("lbank.com")) {
+            bid = document.querySelector('.orderlist.bids .price')?.textContent.trim().replace(/,/g, '');
+            ask = document.querySelector('.orderlist.asks .price')?.textContent.trim().replace(/,/g, '');
+        } else if (url.includes("gate.io")) {
+            bid = document.querySelector('.depth-list-item .sc-278b8b11-4.hNNPbI')?.textContent.trim().replace(/,/g, '');
+            ask = document.querySelector('.depth-list-item .sc-278b8b11-4.logTeL')?.textContent.trim().replace(/,/g, '');
+        } else {
+            console.log("Неизвестная биржа: " + url);
+            return;
+        }
 
-    if (bid && ask) {
-        bid = parseFloat(bid);
-        ask = parseFloat(ask);
-
-        chrome.runtime.sendMessage({
-            action: "updatePrices",
-            exchange: url,
-            bid: bid,
-            ask: ask
-        });
+        if (bid && ask) {
+            bid = parseFloat(bid);
+            ask = parseFloat(ask);
+            chrome.runtime.sendMessage({
+                action: "updatePrices",
+                exchange: url,
+                bid: bid,
+                ask: ask
+            });
+        }
+    } catch (error) {
+        console.error("Ошибка при парсинге цен:", error);
     }
-    console.log("Парсим цены для:", window.location.hostname);
 }
 
-setInterval(runGetPrices, 1000);
+setInterval(runGetPrices, 500);

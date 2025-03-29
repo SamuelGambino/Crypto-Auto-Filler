@@ -4,8 +4,8 @@ const saveButton = document.getElementById("saveButton");
 const messageElement = document.getElementById("message");
 const select1 = document.getElementById("exchangeSelect1");
 const select2 = document.getElementById("exchangeSelect2");
-const spredIn = document.getElementById("spred-in");
-const spredOut = document.getElementById("spred-out");
+const spreadIn = document.getElementById("spread-in");
+const spreadOut = document.getElementById("spread-out");
 
 document.addEventListener("DOMContentLoaded", () => {
     storage.sync.get(["savedValue"]).then((result) => {
@@ -22,34 +22,45 @@ document.addEventListener("DOMContentLoaded", () => {
             setTimeout(updateSpreads, 500);
         }
     });
-
-    chrome.runtime.sendMessage({ action: "getPrices" }, (response) => {
-        if (response && response.prices) {
-            updatePopupUI(response.prices);
-        } else {
-            document.getElementById("spread-info").textContent = "Нет данных";
-        }
-    });
 });
-function updatePopupUI(prices) {
-    const spreadContainer = document.getElementById("spread-info");
-    spreadContainer.innerHTML = "";
 
-    if (!prices || Object.keys(prices).length === 0) {
-        spreadContainer.textContent = "Нет данных";
+function updatePopupUI(prices) {
+    const exchanges = Object.keys(prices);
+
+    if (!prices || exchanges.length === 0) {
+        spreadIn.textContent = "Нет данных";
+        spreadOut.textContent = "Нет данных";
         return;
     }
 
-    Object.keys(prices).forEach((exchange) => {
-        const { bid, ask } = prices[exchange];
-        if (!bid || !ask) return;
+    exchanges.forEach((exchange1) => {
+        const priceData1 = prices[exchange1];
+        if (!priceData1 || !priceData1.bid || !priceData1.ask) {
+            return; 
+        }
+        const ask1 = priceData1.ask;
+        const bid1 = priceData1.bid;
 
-        const spread = (ask - bid).toFixed(2);
-        const spreadPercentage = ((ask - bid) / ask * 100).toFixed(2);
+        exchanges.forEach((exchange2) => {
+            if (exchange1 === exchange2) {
+                return;
+            }
 
-        const spreadText = document.createElement("p");
-        spreadText.textContent = `${exchange}: Спред ${spread} (${spreadPercentage}%)`;
-        spreadContainer.appendChild(spreadText);
+            const priceData2 = prices[exchange2];
+            if (!priceData2 || !priceData2.bid || !priceData2.ask) {
+                return; 
+             }
+            const bid2 = priceData2.bid;
+            const ask2 = priceData2.ask;
+
+            const spreadBuy = bid1 - ask2;
+            const spreadBuyPercentage = (spreadBuy / bid1 * 100).toFixed(2);
+            spreadIn.textContent = `${spreadBuyPercentage}%`;
+
+            const spreadSell = ask1 - bid2;
+            const spreadSellPercentage = (spreadSell / ask1 * 100).toFixed(2);
+            spreadOut.textContent = `${spreadSellPercentage}%`;
+        });
     });
 }
 
@@ -99,28 +110,13 @@ saveButton.addEventListener("click", () => {
 
 function updateSpreads() {
     chrome.runtime.sendMessage({ action: "getPrices" }, (response) => {
-        if (!response || !response.prices) return;
-
-        const exchange1 = select1.value;
-        const exchange2 = select2.value;
-
-        const prices1 = response.prices[exchange1];
-        const prices2 = response.prices[exchange2];
-
-        if (!prices1?.bid || !prices1?.ask || !prices2?.bid || !prices2?.ask) {
-            spredIn.textContent = "Нет данных";
-            spredOut.textContent = "Нет данных";
-            return;
+        if (response && response.prices) {
+            updatePopupUI(response.prices);
+        } else {
+            spreadIn.textContent = "Нет данных";
+            spreadOut.textContent = "Нет данных";
         }
-
-        const spreadInValue = (prices1.ask - prices2.bid).toFixed(6);
-        const spreadOutValue = (prices2.ask - prices1.bid).toFixed(6);
-
-        spredIn.textContent = `Спред входа: ${spreadInValue}`;
-        spredOut.textContent = `Спред выхода: ${spreadOutValue}`;
     });
-    console.log("Выбранные вкладки:", exchange1, exchange2);
-    console.log("Все доступные цены:", response.prices);
 }
 
-setInterval(updateSpreads, 1000);
+setInterval(updateSpreads, 500);
