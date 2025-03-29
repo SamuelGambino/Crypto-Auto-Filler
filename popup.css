@@ -116,3 +116,8 @@ body {
   gap: 10px;
   margin-bottom: 15px;
 }
+
+.spred-wrapper {
+  display: flex;
+  flex-direction: column;
+}
