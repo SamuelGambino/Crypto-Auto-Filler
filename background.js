@@ -31,11 +31,11 @@ function updateExchangeTabs() {
                 || url.hostname.includes('poloniex.com')
                 || url.hostname.includes('xt.com');
             } catch (e) {
-                return false; // На случай, если url некорректен
+                return false; 
             }
         });
 
-        chrome.storage.local.set({ exchangeTabs: exchangeTabs }, () => {
+        chrome.storage.local.set({ exchangeTabs: exchangeTabs.filter(tab => tab.id) }, () => { // TODO: add filter
             if (chrome.runtime.lastError) {
                 console.error("Ошибка сохранения exchangeTabs:", chrome.runtime.lastError);
             } else {
@@ -48,7 +48,6 @@ function updateExchangeTabs() {
 chrome.tabs.onRemoved.addListener(updateExchangeTabs);
 chrome.tabs.onCreated.addListener(updateExchangeTabs);
 setTimeout(() => { chrome.tabs.onUpdated.addListener(updateExchangeTabs); }, 15000);
-
 chrome.runtime.onInstalled.addListener(updateExchangeTabs);
 
 let exchangePrices = {};
@@ -89,67 +88,44 @@ function runGetPrices() {
     });
 }
 
-function getAveragePrice(priceList) {
-    let sum = 0;
-    let count = 0;
-
-    priceList.forEach(element => {
-        let priceStr = element?.textContent.trim().replace(/,/g, '');
-        let price = parseFloat(priceStr);
-
-        if (!isNaN(price)) {
-            sum += price;
-            count++;
-        }
-    });
-
-    if (count > 0) {
-        return sum / count;
-    } else {
-        console.error(`Нет валидных цен для селектора: ${selector}`);
-        return null;
-    }
-}
-
 function getPrices() {
-    let bidList = null;
-    let askList = null;
+    let bidList = [];
+    let askList = [];
     const url = window.location.hostname;
 
     try {
         if (url.includes("binance.com")) {
-            bidList = document.querySelectorAll('.orderbook-bid-price');
-            askList = document.querySelectorAll('.orderbook-ask-price');
+            bidList = [...document.querySelectorAll('.orderbook-bid-price')].map(el => el.textContent.trim());
+            askList = [...document.querySelectorAll('.orderbook-ask-price')].map(el => el.textContent.trim());
         } else if (url.includes("bybit.com")) {
-            bidList = document.querySelectorAll('.bid-price');
-            askList = document.querySelectorAll('.ask-price');
+            bidList = [...document.querySelectorAll('.bid-price')].map(el => el.textContent.trim());
+            askList = [...document.querySelectorAll('.ask-price')].map(el => el.textContent.trim());
         } else if (url.includes("okx.com")) {
-            bidList = document.querySelectorAll('.orderlist.bids .price');
-            askList = document.querySelectorAll('.orderlist.asks .price');
+            bidList = [...document.querySelectorAll('.orderlist.bids .price')].map(el => el.textContent.trim());
+            askList = [...document.querySelectorAll('.orderlist.asks .price')].map(el => el.textContent.trim());
         } else if (url.includes("mexc.com")) {
-            bidList = document.querySelectorAll('.market_tableRow__Uuhwj.market_askRow__eRJes .market_price__V_09X.market_sell__SZ_It span');
-            askList = document.querySelectorAll('.market_tableRow__Uuhwj.market_bidRow__6wAE6 .market_price__V_09X.market_buy__F9O7S span');
+            bidList = [...document.querySelectorAll('.market_tableRow__Uuhwj.market_askRow__eRJes .market_price__V_09X.market_sell__SZ_It span')].map(el => el.textContent.trim());
+            askList = [...document.querySelectorAll('.market_tableRow__Uuhwj.market_bidRow__6wAE6 .market_price__V_09X.market_buy__F9O7S span')].map(el => el.textContent.trim());
         } else if (url.includes("lbank.com")) {
-            bidList = document.querySelectorAll('.orderlist.bids .price');
-            askList = document.querySelectorAll('.orderlist.asks .price');
+            bidList = [...document.querySelectorAll('.orderlist.bids .price')].map(el => el.textContent.trim());
+            askList = [...document.querySelectorAll('.orderlist.asks .price')].map(el => el.textContent.trim());
         } else if (url.includes("gate.io")) {
-            bidList = document.querySelectorAll('.depth-list-item .sc-278b8b11-4.hNNPbI');
-            askList = document.querySelectorAll('.depth-list-item .sc-278b8b11-4.logTeL');
+            bidList = [...document.querySelectorAll('.depth-list-item .sc-278b8b11-4.hNNPbI')].map(el => el.textContent.trim());
+            askList = [...document.querySelectorAll('.depth-list-item .sc-278b8b11-4.logTeL')].map(el => el.textContent.trim());
         } else {
             console.log("Неизвестная биржа: " + url);
             return;
         }
 
-        bid = getAveragePrice(bidList);
-        ask = getAveragePrice(askList);
-
-        if (bid && ask) {
+        if (bidList.length > 0 && askList.length > 0) {
             chrome.runtime.sendMessage({
                 action: "updatePrices",
                 exchange: url,
-                bid: bid,
-                ask: ask
+                bid: bidList,
+                ask: askList
             });
+        } else {
+            console.error("Цены не найдены на " + url);
         }
     } catch (error) {
         console.error("Ошибка при парсинге цен:", error);

@@ -24,46 +24,71 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-function updatePopupUI(prices) {
-    const exchanges = Object.keys(prices);
+function getAveragePrice(priceList) {
+    let sum = 0;
+    let count = 0;
 
-    if (!prices || exchanges.length === 0) {
+    priceList.forEach(priceStr => {
+        let price = parseFloat(priceStr.replace(/,/g, ''));
+
+        if (!isNaN(price)) {
+            sum += price;
+            count++;
+        }
+    });
+
+    return count > 0 ? (sum / count) : null;
+}
+
+function updatePopupUI(prices) {
+    console.log("Полученные цены в updatePopupUI:", prices); // Логируем приходящие данные
+
+    if (!prices || Object.keys(prices).length === 0) {
+        console.warn("Нет данных о ценах!");
         spreadIn.textContent = "Нет данных";
         spreadOut.textContent = "Нет данных";
         return;
     }
 
-    exchanges.forEach((exchange1) => {
-        const priceData1 = prices[exchange1];
-        if (!priceData1 || !priceData1.bid || !priceData1.ask) {
-            return; 
+    let exchanges = Object.keys(prices);
+    console.log("Биржи с ценами:", exchanges);
+
+    let bestBid = null;
+    let bestAsk = null;
+
+    exchanges.forEach(exchange => {
+        let priceData = prices[exchange];
+        if (!priceData || !priceData.bid || !priceData.ask) {
+            console.warn(`Нет данных для ${exchange}`);
+            return;
         }
-        const ask1 = priceData1.ask;
-        const bid1 = priceData1.bid;
 
-        exchanges.forEach((exchange2) => {
-            if (exchange1 === exchange2) {
-                return;
-            }
+        let bid = getAveragePrice(priceData.bid);
+        let ask = getAveragePrice(priceData.ask);
 
-            const priceData2 = prices[exchange2];
-            if (!priceData2 || !priceData2.bid || !priceData2.ask) {
-                return; 
-             }
-            const bid2 = priceData2.bid;
-            const ask2 = priceData2.ask;
+        if (bid && (!bestBid || bid > bestBid)) {
+            bestBid = bid;
+        }
 
-            const spreadBuy = bid1 - ask2;
-            const spreadBuyPercentage = (spreadBuy / bid1 * 100).toFixed(2);
-            spreadIn.textContent = `${spreadBuyPercentage}%`;
-
-            const spreadSell = ask1 - bid2;
-            const spreadSellPercentage = (spreadSell / ask1 * 100).toFixed(2);
-            spreadOut.textContent = `${spreadSellPercentage}%`;
-        });
+        if (ask && (!bestAsk || ask < bestAsk)) {
+            bestAsk = ask;
+        }
     });
-}
 
+    if (bestBid !== null && bestAsk !== null) {
+        let spreadBuy = bestBid - bestAsk;
+        let spreadBuyPercentage = (spreadBuy / bestBid * 100).toFixed(2);
+        spreadIn.textContent = `${spreadBuyPercentage}%`;
+
+        let spreadSell = bestAsk - bestBid;
+        let spreadSellPercentage = (spreadSell / bestAsk * 100).toFixed(2);
+        spreadOut.textContent = `${spreadSellPercentage}%`;
+    } else {
+        console.warn("Не удалось вычислить спред");
+        spreadIn.textContent = "Ошибка";
+        spreadOut.textContent = "Ошибка";
+    }
+}
 
 function updateExchangeSelects(tabs, selected1, selected2) {
     select1.innerHTML = "";
@@ -109,14 +134,26 @@ saveButton.addEventListener("click", () => {
 });
 
 function updateSpreads() {
+    console.log("Запрос цен у background.js...");
     chrome.runtime.sendMessage({ action: "getPrices" }, (response) => {
+        if (chrome.runtime.lastError) {
+            console.error("Ошибка при запросе цен:", chrome.runtime.lastError);
+            spreadIn.textContent = "Ошибка запроса";
+            spreadOut.textContent = "Ошибка запроса";
+            return;
+        }
+
+        console.log("Ответ от background.js:", response);
+
         if (response && response.prices) {
             updatePopupUI(response.prices);
         } else {
+            console.warn("Нет данных в ответе!");
             spreadIn.textContent = "Нет данных";
             spreadOut.textContent = "Нет данных";
         }
     });
 }
+
 
 setInterval(updateSpreads, 500);
