@@ -6,6 +6,11 @@ const select1 = document.getElementById("exchangeSelect1");
 const select2 = document.getElementById("exchangeSelect2");
 const spreadIn = document.getElementById("spread-in");
 const spreadOut = document.getElementById("spread-out");
+let lastValidBid1 = 0;
+let lastValidAsk1 = 0;
+let lastValidBid2 = 0;
+let lastValidAsk2 = 0;
+const priceErrorThreshold = 5;
 
 document.addEventListener("DOMContentLoaded", () => {
     storage.sync.get(["savedValue"]).then((result) => {
@@ -24,70 +29,129 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-function getAveragePrice(priceList) {
-    let sum = 0;
-    let count = 0;
+function getMinPrice(priceList) {
+    if (!priceList || priceList.length === 0) {
+        return null;
+    }
 
-    priceList.forEach(priceStr => {
-        let price = parseFloat(priceStr.replace(/,/g, ''));
-
-        if (!isNaN(price)) {
-            sum += price;
-            count++;
+    let minPrice = Infinity;
+    for (const priceStr of priceList) {
+        const price = parseFloat(priceStr.replace(/,/g, ''));
+        if (!isNaN(price) && price < minPrice) {
+            minPrice = price;
         }
-    });
+    }
+    return minPrice === Infinity ? null : minPrice;
+}
 
-    return count > 0 ? (sum / count) : null;
+function getMaxPrice(priceList) {
+    if (!priceList || priceList.length === 0) {
+        return null;
+    }
+
+    let maxPrice = -Infinity;
+    for (const priceStr of priceList) {
+        const price = parseFloat(priceStr.replace(/,/g, ''));
+        if (!isNaN(price) && price > maxPrice) {
+            maxPrice = price;
+        }
+    }
+    return maxPrice === -Infinity ? null : maxPrice;
+}
+
+function spreadCheck(bid1, ask1, bid2, ask2) {
+    const bidDifference = Math.abs(bid1 - bid2);
+    const askDifference = Math.abs(ask1 - ask2);
+    if (bidDifference > priceErrorThreshold || askDifference > priceErrorThreshold) {
+        console.log("Цены слишком различаются, используем прошлые данные.");
+        bid1 = lastValidBid1 !== null ? lastValidBid1 : null;
+        ask1 = lastValidAsk1 !== null ? lastValidAsk1 : null;
+        bid2 = lastValidBid2 !== null ? lastValidBid2 : null;
+        ask2 = lastValidAsk2 !== null ? lastValidAsk2 : null;
+    } else {
+         if (bid1 !== null  && ask1 !== null) {
+            lastValidBid1 = bid1;
+            lastValidAsk1 = ask1;
+        }
+        if (bid2 !== null && ask2 !== null) {
+            lastValidBid2 = bid2;
+            lastValidAsk2 = ask2;
+        }
+    }
+    return { bid1, ask1, bid2, ask2 };
 }
 
 function updatePopupUI(prices) {
-    console.log("Полученные цены в updatePopupUI:", prices); // Логируем приходящие данные
+    let spreadInValue = null;
+    let spreadOutValue = null;
 
-    if (!prices || Object.keys(prices).length === 0) {
-        console.warn("Нет данных о ценах!");
-        spreadIn.textContent = "Нет данных";
-        spreadOut.textContent = "Нет данных";
+    const exchanges = Object.keys(prices);
+
+    if (!prices || exchanges.length < 2) {
+        spreadIn.textContent = "Недостаточно данных";
+        spreadOut.textContent = "Недостаточно данных";
         return;
     }
 
-    let exchanges = Object.keys(prices);
-    console.log("Биржи с ценами:", exchanges);
+    for (let i = 0; i < exchanges.length; i++) {
+        const exchange1 = exchanges[i];
+        const priceData1 = prices[exchange1];
+        if (!priceData1 || !priceData1.bid || !priceData1.ask) continue;
 
-    let bestBid = null;
-    let bestAsk = null;
+        // let ask1 = getMinPrice(priceData1.ask);
+        // let bid1 = getMaxPrice(priceData1.bid);
 
-    exchanges.forEach(exchange => {
-        let priceData = prices[exchange];
-        if (!priceData || !priceData.bid || !priceData.ask) {
-            console.warn(`Нет данных для ${exchange}`);
-            return;
+        let bid1 = getMaxPrice(priceData1.ask);
+        let ask1 = getMinPrice(priceData1.bid);
+
+        if (ask1 === null || bid1 === null) continue;
+
+        for (let j = i + 1; j < exchanges.length; j++) {
+            const exchange2 = exchanges[j];
+            const priceData2 = prices[exchange2];
+             if (!priceData2 || !priceData2.bid || !priceData2.ask) continue;
+
+            let bid2 = getMaxPrice(priceData2.bid);
+            let ask2 = getMinPrice(priceData2.ask);
+
+            if (ask2 === null || bid2 === null) continue;
+
+
+            const correctedPrices = spreadCheck(bid1, ask1, bid2, ask2);
+            bid1 = correctedPrices.bid1;
+            ask1 = correctedPrices.ask1;
+            bid2 = correctedPrices.bid2;
+            ask2 = correctedPrices.ask2;
+
+
+             if (bid1 === null || ask1 === null || bid2 === null || ask2 === null) {
+                console.log(`Пропускаем итерацию из-за null в ценах после spreadCheck`);
+                continue;
+            }
+
+            const spreadBuyPercentage = ((bid1 - ask2) / ask2) * 100;
+            const spreadSellPercentage = ((bid2 - ask1) / ask1) * 100;
+
+            console.log(`---- Спред между ${exchange1} и ${exchange2} ----`);
+            console.log(`[${new Date().toISOString()}] ask1: ${ask1}, bid1: ${bid1}, ask2: ${ask2}, bid2: ${bid2}`);
+            console.log(`spreadBuyPercentage: ${spreadBuyPercentage}, spreadSellPercentage: ${spreadSellPercentage}`);
+
+
+            if (spreadInValue === null || Math.abs(spreadBuyPercentage) > Math.abs(spreadInValue)) {
+                 if (!isNaN(spreadBuyPercentage) && isFinite(spreadBuyPercentage) && Math.abs(spreadBuyPercentage) < 100) {
+                    spreadInValue = spreadBuyPercentage;
+                }
+            }
+            if (spreadOutValue === null || Math.abs(spreadSellPercentage) > Math.abs(spreadOutValue)) {
+                if (!isNaN(spreadSellPercentage) && isFinite(spreadSellPercentage) && Math.abs(spreadSellPercentage) < 100){
+                    spreadOutValue = spreadSellPercentage;
+                }
+            }
         }
-
-        let bid = getAveragePrice(priceData.bid);
-        let ask = getAveragePrice(priceData.ask);
-
-        if (bid && (!bestBid || bid > bestBid)) {
-            bestBid = bid;
-        }
-
-        if (ask && (!bestAsk || ask < bestAsk)) {
-            bestAsk = ask;
-        }
-    });
-
-    if (bestBid !== null && bestAsk !== null) {
-        let spreadBuy = bestBid - bestAsk;
-        let spreadBuyPercentage = (spreadBuy / bestBid * 100).toFixed(2);
-        spreadIn.textContent = `${spreadBuyPercentage}%`;
-
-        let spreadSell = bestAsk - bestBid;
-        let spreadSellPercentage = (spreadSell / bestAsk * 100).toFixed(2);
-        spreadOut.textContent = `${spreadSellPercentage}%`;
-    } else {
-        console.warn("Не удалось вычислить спред");
-        spreadIn.textContent = "Ошибка";
-        spreadOut.textContent = "Ошибка";
     }
+
+    spreadOut.textContent = spreadInValue !== null ? `${spreadInValue.toFixed(2) * -1}%` : "Ошибка данных";
+    spreadIn.textContent = spreadOutValue !== null ? `${spreadOutValue.toFixed(2) * -1}%` : "Ошибка данных";
 }
 
 function updateExchangeSelects(tabs, selected1, selected2) {
