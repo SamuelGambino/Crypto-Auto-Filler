@@ -1,7 +1,9 @@
 const valueInput = document.getElementById("valueInput");
 const saveButton = document.getElementById("saveButton");
-const exchangesListDiv = document.getElementById("exchangesList");
-const saveExchangesButton = document.getElementById("saveExchanges");
+const exchange = document.getElementById('exchangeSelect1');
+const symbol = document.getElementById('symbol');
+const startBtn = document.getElementById('start');
+const stopBtn = document.getElementById('stop');
 const messageElement = document.getElementById("message");
 
 // Загрузка данных и отображение
@@ -23,6 +25,27 @@ saveButton.addEventListener("click", () => {
           setTimeout(() => { messageElement.textContent = ""; }, 2000);
     }
   });
+});
+
+startBtn.addEventListener('click', () => {
+  exchange.value
+  console.log(exchange.value);
+  symbol.value.toUpperCase().trim();
+
+  if (!exchange || !symbol) {
+    alert('Выберите биржу и введите монету.');
+    return;
+  }
+
+  chrome.runtime.sendMessage({
+    type: 'start-tracking',
+    exchange,
+    symbol
+  });
+});
+
+stopBtn.addEventListener('click', () => {
+  chrome.runtime.sendMessage({ type: 'stop-tracking' });
 });
 
 loadData();

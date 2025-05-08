@@ -5,8 +5,12 @@
   "description": "Автоматически заполняет текстовые поля на биржах (Firefox и Chrome).",
   "permissions": [
       "storage",
-      "activeTab"
-  ],
+      "activeTab",
+      "background"
+    ],
+  "background": {
+      "service_worker": "background.js"
+    },
   "host_permissions": [
       "*://*.binance.com/*",
       "*://*.binance.us/*",
