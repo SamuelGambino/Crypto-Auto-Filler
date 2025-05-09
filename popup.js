@@ -28,19 +28,20 @@ saveButton.addEventListener("click", () => {
 });
 
 startBtn.addEventListener('click', () => {
-  exchange.value
-  console.log(exchange.value);
-  symbol.value.toUpperCase().trim();
+  const selectedExchange = exchange.value;
+  const enteredSymbol = symbol.value.toUpperCase().trim();
 
-  if (!exchange || !symbol) {
+  if (!selectedExchange || !enteredSymbol) {
     alert('Выберите биржу и введите монету.');
     return;
   }
 
+  console.log("Отправка данных:", selectedExchange, enteredSymbol);
+
   chrome.runtime.sendMessage({
     type: 'start-tracking',
-    exchange,
-    symbol
+    exchange: selectedExchange,
+    symbol: enteredSymbol
   });
 });
 
