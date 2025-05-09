@@ -1,16 +1,16 @@
 {
   "manifest_version": 3,
   "name": "Cryto Auto Filler",
-  "version": "1.2",
+  "version": "1.3",
   "description": "Автоматически заполняет текстовые поля на биржах (Firefox и Chrome).",
-  "background": {
-    "service_worker": "background.js"
-  },
   "permissions": [
       "storage",
       "activeTab",
-      "tabs"
-  ],
+      "background"
+    ],
+  "background": {
+      "service_worker": "background.js"
+    },
   "host_permissions": [
       "*://*.binance.com/*",
       "*://*.binance.us/*",
@@ -95,7 +95,10 @@
           "run_at": "document_idle"
       }
   ],
-
+  "options_ui": {
+      "page": "options.html",
+      "open_in_tab": true
+  },
   "browser_specific_settings": { 
       "gecko": {
           "id": "addon@auto-filler-for-funding.id" 

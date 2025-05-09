@@ -1,8 +1,6 @@
-const storage = typeof browser !== "undefined" ? browser.storage : chrome.storage;
-
 function debounce(func, delay) {
     let timeoutId;
-    return function (...args) {
+    return function(...args) {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => {
             func.apply(this, args);
@@ -14,18 +12,29 @@ function fillField(targetField) {
     if (!targetField) {
         return;
     }
-
-    storage.sync.get(["savedValue"]).then((result) => {
-        const savedValue = result.savedValue ?? "";
-
-        if (targetField.value === "" || targetField.value === "0") {
-            targetField.value = savedValue;
-            const event = new Event("input", { bubbles: true });
-            targetField.dispatchEvent(event);
-            console.log("Auto Filler: Field filled:", targetField);
+    // Запрашиваем savedValue у background script'а
+    chrome.runtime.sendMessage({action: "getSavedValue"}, (response) => {
+        if (chrome.runtime.lastError) { //Проверяем, не было ли ошибки
+          console.error("Error getting saved value:", chrome.runtime.lastError);
+          return;
         }
-    }).catch(error => {
-        console.error("AutoFiller: Error getting saved value:", error);
+
+        const savedValue = response.savedValue ?? "";
+        if (targetField.value === "" || targetField.value === "0") {
+            try { //Оборачиваем в try...catch
+                targetField.value = savedValue;
+                const event = new Event('input', { bubbles: true });
+                targetField.dispatchEvent(event);
+                console.log("Auto Filler: Field filled:", targetField);
+            } catch (error) {
+               if (error.message === "Extension context invalidated."){
+                 // Обрабатываем ошибку
+                 console.warn("AutoFiller: Extension context invalidated while filling field.");
+               } else {
+                    console.error("AutoFiller: Error filling field:", error);
+                }
+            }
+        }
     });
 }
 
@@ -34,53 +43,38 @@ const debouncedFillAllFields = debounce(() => {
     textFields.forEach(fillField);
 }, 200);
 
-let observer = null;
+let observer = null; // Переменная для хранения observer
 
-// Функция запускает заполнение полей, но только если вкладка разрешена
-function checkAndStartFilling(currentTabId) {
-    chrome.storage.local.get(["selectedTabId1", "selectedTabId2"], function (result) {
-        if (result.selectedTabId1 == currentTabId || result.selectedTabId2 == currentTabId) {
-            console.log(`✅ AutoFiller работает на вкладке ${currentTabId}`);
-            debouncedFillAllFields();
-
-            if (!observer) {
-                observer = new MutationObserver((mutations) => {
-                    mutations.forEach((mutation) => {
-                        if (mutation.target === null) return;
-                        debouncedFillAllFields();
-                    });
-                });
-
-                observer.observe(document.body, {
-                    childList: true,
-                    subtree: true,
-                    attributes: true,
-                    attributeFilter: ["value", "type"]
-                });
-
-                document.body.addEventListener("input", debouncedFillAllFields);
-                document.body.addEventListener("change", debouncedFillAllFields);
-                document.body.addEventListener("blur", debouncedFillAllFields, true);
-            }
-        } else {
-            console.log(`❌ AutoFiller НЕ работает на вкладке ${currentTabId} (не выбрана)`);
-        }
-    });
-}
-
-// Получаем ID текущей вкладки перед запуском логики
-chrome.runtime.sendMessage({ action: "getCurrentTabId" }, (response) => {
-    if (!response || !response.currentTabId) {
-        console.warn("❌ AutoFiller: Не удалось получить ID вкладки.");
+function startObserving() {
+    if (!document.body) {
+        console.warn("AutoFiller: document.body not ready yet.");
         return;
     }
-    checkAndStartFilling(response.currentTabId);
-});
 
-// Останавливаем наблюдение при выгрузке страницы
+    debouncedFillAllFields();
+
+    if (observer) {
+        observer.disconnect();
+    }
+
+    observer = new MutationObserver(debouncedFillAllFields);
+
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['value', 'type']
+    });
+
+    document.body.addEventListener("input", debouncedFillAllFields);
+    document.body.addEventListener("change", debouncedFillAllFields);
+    document.body.addEventListener("blur", debouncedFillAllFields, true);
+}
+startObserving();
+
 window.addEventListener("beforeunload", () => {
     if (observer) {
         observer.disconnect();
-        observer = null;
+        observer = null; // Очищаем observer
     }
 });

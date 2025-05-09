@@ -1,97 +1,96 @@
-/* Общие стили */
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Современный шрифт */
-  background-color: #01091A; /* Основной фон */
-  color: #fff;            /* Цвет текста */
-  margin: 0;               /* Убираем отступы по умолчанию */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #01091A;
+  color: #fff;
+  margin: 0;
   padding: 0;
-  width: 250px; /*Ширину можно и тут указать*/
+    width: 250px;
 
 }
 
 .container {
   padding: 20px;
   display: flex;
-  flex-direction: column; /* Элементы друг под другом */
-  align-items: stretch;    /* Растягиваем элементы на всю ширину */
+  flex-direction: column;
+  align-items: stretch;
 }
 
-/* Стили для label */
+
 .label {
   margin-bottom: 5px;
   font-size: 14px;
-  color: #eee; /* Немного светлее основного текста */
+  color: #eee; 
 }
 
-/* Стили для input */
+
 .input {
   padding: 10px;
   font-size: 16px;
-  border: 1px solid #CD5700; /* Бордюр */
-  border-radius: 4px;      /* Скругленные углы */
-  background-color: #0A1428; /* Темный фон для input */
-  color: #fff;            /* Цвет текста */
-  margin-bottom: 15px;      /* Отступ снизу */
-  outline: none; /* Убираем outline при фокусе */
+  border: 1px solid #CD5700;
+  border-radius: 4px;     
+  background-color: #0A1428;
+  color: #fff;           
+  margin-bottom: 15px;
+  outline: none;
 
 }
 .input:focus{
-  border-color: #FF781F; /* Меняем цвет бордера при фокусе*/
+  border-color: #FF781F;
 }
 
-/* Стили для button */
 .button {
   padding: 10px 15px;
   font-size: 16px;
-  border: none;             /* Убираем стандартный бордюр */
-  border-radius: 4px;      /* Скругленные углы */
-  background-color: #CD5700; /* Цвет кнопки */
-  color: #fff;            /* Цвет текста */
-  cursor: pointer;          /* Курсор-указатель */
-  transition: background-color 0.2s ease; /* Плавное изменение цвета */
+  border: none;
+  border-radius: 4px;
+  background-color: #CD5700;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
   outline: none;
+  width: 100%;
 }
 
 .button:hover {
-  background-color: #FF781F; /* Светлее при наведении */
+  background-color: #FF781F; 
 }
 .button:active{
-  background-color: #AB4700; /*Темнее, когда кнопка "вниз" нажата */
+  background-color: #AB4700; 
 }
-/* Стили для message */
+
 .message {
-  color: #32CD32; /*Зеленый, но можно и поменять */
+  color: #32CD32;
   margin-top: 10px;
   font-size: 14px;
-  text-align: center; /* Выравниваем текст по центру */
-  font-weight: bold; /* Жирный шрифт */
+  text-align: center; 
+  font-weight: bold;
 
 }
 
 .about {
-  margin-top: 10px;
-  font-size: 14px;
-  text-align: center;
-  color: #ffffff;
+    margin-top: 10px;
+    font-size: 14px;
+    text-align: center;
+    color: #ffffff;
 }
 
 .about__me {
-  margin-top: 10px;
-  font-size: 14px;
-  text-align: center;
-  color: #ffffff;
-  text-decoration: underline;
+    margin-top: 10px;
+    font-size: 14px;
+    text-align: center;
+    color: #ffffff;
+    text-decoration: underline;
 }
 
 .popup__title {
-  text-align: center;
-  margin-bottom: 20px;
-  font-size: 24px;
-  color: #ffffff;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #ffffff;
 }
 
 .popup__title .popup__title--accent {
-  color: #CD5700;
+    color: #CD5700;
 }
 
 .dropbox {
@@ -115,4 +114,37 @@ body {
   display: flex;
   gap: 10px;
   margin-bottom: 15px;
+}
+
+.panel-addCoin {
+  display: flex;
+  gap: 10px;
+}
+
+.spread-wrapper {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  margin: 0px 0px 15px;
+  border: solid;
+  border: 1px solid #CD5700;
+  border-radius: 4px;
+}
+
+.spread-output-count {
+  font-size: 20px;
+}
+
+.spread-output {
+  display: flex;
+  flex-direction: column;
+  margin: 0px 0px 10px;
+}
+
+.spread-value {
+  color: #32CD32;
+}
+
+.spread-value--red {
+  color: rgb(184, 26, 26);
 }

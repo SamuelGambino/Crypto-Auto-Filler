@@ -9,17 +9,47 @@
   <div class="container">
     <h1 class="popup__title"><span class="popup__title--accent">C</span>rypto <span class="popup__title--accent">A</span>uto <span class="popup__title--accent">F</span>iller</h1>
     
-    <label for="valueInput" class="label">Выберите биржи:</label>
-    <div class="dropbox-wrapper">
-      <select id="exchangeSelect1" class="dropbox"></select>
-      <select id="exchangeSelect2" class="dropbox"></select>
-    </div>
+    <div class="spread-wrapper">
+
+      <div class="spread-output">
+        <label for="valueInput" class="spread-output-count">Вход: <span id="spreadIn" class="spread-output-count spread-value"></span></label>
+        <label for="valueInput" class="spread-output-count">Выход: <span id="spreadOut" class="spread-output-count spread-value--red"></span></label>
+      </div>
+
+      <label for="valueInput" class="label">Введите токен:</label>
+      <input type="text" id="symbol" class="input">
+
+      <label for="valueInput" class="label">Выберите биржи:</label>
+      <div class="dropbox-wrapper">
+        <select id="exchangeSelect1" class="dropbox">
+          <option value="">Не выбрано</option>
+          <option value="mexc">MEXC</option>
+          <option value="mexcS">MEXC-spot</option>
+          <option value="gate">Gate.io</option>
+          <option value="gateS">Gate.io-spot</option>
+          <option value="bitget">Bitget</option>
+          <option value="bitgetS">Bitget-spot</option>
+          <option value="kucoin">KuCoin</option>
+          <option value="kucoinS">KuCoin-spot</option>
+        </select>
+        <select id="exchangeSelect2" class="dropbox">
+          <option value="">Не выбрано</option>
+          <option value="mexc">MEXC</option>
+          <option value="gate">Gate.io</option>
+          <option value="bitget">Bitget</option>
+          <option value="kucoin">KuCoin</option>
+        </select>
+      </div>
     
+      <div class="panel-addCoin">
+        <button id="start" class="button">Старт</button>
+        <button id="stop" class="button">Стоп</button>
+      </div>
+    </div>
+
     <label for="valueInput" class="label">Значение для заполнения:</label>
     <input type="text" id="valueInput" class="input">
-    
     <button id="saveButton" class="button">Сохранить</button>
-    
     <p id="message" class="message"></p>
     <span class="about">Разработал @<a class="about__me" href="https://t.me/Samuel_Gambino">Samuel Gambino</a></span>
   </div>
