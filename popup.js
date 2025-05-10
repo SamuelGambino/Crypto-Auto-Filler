@@ -12,7 +12,6 @@ const addTabBtn = document.getElementById("addTab");
 const messageElement = document.getElementById("message");
 const select1 = document.getElementById("exchangeSelect1");
 const select2 = document.getElementById("exchangeSelect2");
-const storage = typeof browser !== "undefined" ? browser.storage : chrome.storage;
 
 let currentTabId = null;
 const state = {};
