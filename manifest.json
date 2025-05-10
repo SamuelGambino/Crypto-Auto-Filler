@@ -95,7 +95,6 @@
           "run_at": "document_idle"
       }
   ],
-
   "browser_specific_settings": { 
       "gecko": {
           "id": "addon@auto-filler-for-funding.id" 
